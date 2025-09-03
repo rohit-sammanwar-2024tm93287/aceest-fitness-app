@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACEest Fitness and Gym</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(238, 90, 82, 0.4);
+        }
+
+        .workouts-section {
+            margin-top: 30px;
+        }
+
+        .workouts-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .workout-stats {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .workout-stats h3 {
+            margin-bottom: 10px;
+        }
+
+        .workout-list {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .workout-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workout-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .workout-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .workout-duration {
+            color: #667eea;
+            font-weight: bold;
+            background: #e8ebff;
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        .no-workouts {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        .alerts {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏋️ ACEest Fitness and Gym</h1>
+        <p>Track your workouts and achieve your fitness goals!</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="alerts">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Add Workout Form -->
+    <div class="form-section">
+        <h2>📝 Add New Workout</h2>
+        <form method="POST" action="{{ url_for('add_workout') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="workout_name">Workout Name:</label>
+                    <input type="text" id="workout_name" name="workout_name"
+                           placeholder="e.g., Push-ups, Running, Squats" required>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (minutes):</label>
+                    <input type="number" id="duration" name="duration"
+                           placeholder="e.g., 30" min="1" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Workout</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Workout Statistics -->
+    {% if workouts %}
+    <div class="workout-stats">
+        <h3>📊 Your Workout Statistics</h3>
+        <p><strong>Total Workouts:</strong> {{ workouts|length }}</p>
+        <p><strong>Total Duration:</strong> {{ total_duration }} minutes</p>
+        <p><strong>Average Duration:</strong> {{ "%.1f"|format(total_duration / workouts|length) }} minutes per workout</p>
+    </div>
+    {% endif %}
+
+    <!-- Workouts List -->
+    <div class="workouts-section">
+        <h2>💪 Your Workouts</h2>
+
+        <div class="workout-list">
+            {% if workouts %}
+            {% for workout in workouts %}
+            <div class="workout-item">
+                <span class="workout-name">{{ workout.workout }}</span>
+                <span class="workout-duration">{{ workout.duration }} min</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-workouts">
+                <p>🏃‍♂️ No workouts logged yet. Start your fitness journey by adding your first workout!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if workouts %}
+        <div class="action-buttons">
+            <form method="POST" action="{{ url_for('reset_workouts') }}"
+                  onsubmit="return confirm('Are you sure you want to reset all workouts? This action cannot be undone.')">
+                <button type="submit" class="btn btn-danger">🗑️ Reset All Workouts</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
