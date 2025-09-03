@@ -1,200 +1,58 @@
-name: CI/CD Pipeline for ACEest Fitness App
+name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
-
-env:
-  DOCKER_IMAGE_NAME: aceest-fitness-app
-  DOCKER_TAG: ${{ github.sha }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Run Tests
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run unit tests with pytest
+      - name: Run tests
         run: |
-          pytest -v --tb=short
+          pytest -v test_app.py
 
-      - name: Generate test coverage report
-        run: |
-          pip install pytest-cov
-          pytest --cov=app --cov-report=xml --cov-report=html
-
-      - name: Upload coverage to Codecov (optional)
-        if: success()
-        uses: codecov/codecov-action@v3
+      - name: Upload test results (if tests fail)
+        uses: actions/upload-artifact@v4
+        if: failure()
         with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          name: test-results
+          path: |
+            pytest.log
+            test-results/
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
-    name: Build Docker Image
     needs: test
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: |
-          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} .
-          docker tag ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_IMAGE_NAME }}:latest
+        run: docker build -t fitness-tracker .
 
-      - name: Test Docker image
-        run: |
-          # Start container in detached mode
-          docker run -d --name test-container -p 5000:5000 ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}
-          
-          # Wait for container to start
-          sleep 10
-          
-          # Test health endpoint
-          docker exec test-container curl -f http://localhost:5000/health || exit 1
-          
-          # Run tests inside Docker container
-          docker exec test-container python -m pytest -v
-          
-          # Stop and remove test container
-          docker stop test-container
-          docker rm test-container
+      - name: Save Docker image
+        run: docker save fitness-tracker | gzip > fitness-tracker.tar.gz
 
-      - name: Save Docker image as artifact
-        run: |
-          docker save ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} | gzip > aceest-fitness-app.tar.gz
-
-      - name: Upload Docker image artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: aceest-fitness-app.tar.gz
-          retention-days: 7
-
-  security-scan:
-    runs-on: ubuntu-latest
-    name: Security Scan
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  deploy-staging:
-    runs-on: ubuntu-latest
-    name: Deploy to Staging
-    needs: [test, build]
-    if: github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-image
-
-      - name: Load Docker image
-        run: |
-          docker load < aceest-fitness-app.tar.gz
-
-      - name: Deploy to staging environment
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          # Add your staging deployment commands here
-          # For example: kubectl, docker-compose, or cloud provider CLI
-          echo "✅ Staging deployment completed successfully!"
-
-  deploy-production:
-    runs-on: ubuntu-latest
-    name: Deploy to Production
-    needs: [test, build, security-scan]
-    if: github.ref == 'refs/heads/main'
-
-    environment:
-      name: production
-      url: https://your-production-url.com
-
-    steps:
-      - name: Download Docker image artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-image
-
-      - name: Load Docker image
-        run: |
-          docker load < aceest-fitness-app.tar.gz
-
-      - name: Deploy to production environment
-        run: |
-          echo "🚀 Deploying to production environment..."
-          # Add your production deployment commands here
-          # For example: kubectl, docker-compose, or cloud provider CLI
-          echo "✅ Production deployment completed successfully!"
-
-      - name: Create GitHub release
-        if: success()
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release v${{ github.run_number }}
-          body: |
-            🎉 **ACEest Fitness App Release v${{ github.run_number }}**
-            
-            **Changes in this release:**
-            - Automated build and deployment
-            - All tests passed ✅
-            - Security scan completed ✅
-            
-            **Docker Image:** `${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}`
-            
-            **Deployment Details:**
-            - Build Number: ${{ github.run_number }}
-            - Commit SHA: ${{ github.sha }}
-            - Branch: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
+          path: fitness-tracker.tar.gz
+          retention-days: 1

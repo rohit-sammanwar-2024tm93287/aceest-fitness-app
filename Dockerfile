@@ -1,58 +1,45 @@
-name: CI
+# Use Python 3.9 slim image as base
+FROM python:3.9-slim
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+# Set working directory in the container
+WORKDIR /app
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
 
-    steps:
-    - uses: actions/checkout@v4
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
+# Copy requirements file
+COPY requirements.txt .
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-    - name: Run tests
-      run: |
-        pytest -v test_app.py
+# Copy application code
+COPY .. .
 
-    - name: Upload test results (if tests fail)
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: test-results
-        path: |
-          pytest.log
-          test-results/
-        retention-days: 7
+# Create templates directory and copy HTML template
+RUN mkdir -p templates
+COPY index.html templates/ 2>/dev/null || echo "index.html not found, using embedded template"
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
+# Create non-root user for security
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 
-    steps:
-    - uses: actions/checkout@v4
+# Expose port
+EXPOSE 5000
 
-    - name: Build Docker image
-      run: docker build -t fitness-tracker .
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
 
-    - name: Save Docker image
-      run: docker save fitness-tracker | gzip > fitness-tracker.tar.gz
-
-    - name: Upload Docker image
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-image
-        path: fitness-tracker.tar.gz
-        retention-days: 1
+# Run the application
+CMD ["python", "app.py"]
