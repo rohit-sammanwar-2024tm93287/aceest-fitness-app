@@ -10,24 +10,22 @@ ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 
-# Install system dependencies
+# Install system dependencies (including curl for health check)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
+# Copy requirements file first (for better Docker layer caching)
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY .. .
-
-# Create templates directory and copy HTML template
-RUN mkdir -p templates
-COPY index.html templates/ 2>/dev/null || echo "index.html not found, using embedded template"
+# Copy application files
+COPY app.py .
+COPY templates/ templates/
 
 # Create non-root user for security
 RUN adduser --disabled-password --gecos '' appuser \
