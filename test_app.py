@@ -1,9 +1,12 @@
-import pytest
 import json
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
+
 from app import app, FitnessTracker
+
 
 class TestFitnessTracker:
     """Test cases for the FitnessTracker class"""

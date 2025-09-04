@@ -17,11 +17,10 @@ Install Python SDK
 - use the command `python -v test_app.py`
 
 # Brief Overview of GitHub Actions
-- **Triggers**: Every git push to the repository
+- **Triggers**: Every git push to the repository.
 - **Steps**:
-  - **Build** - Creates Docker image with Flask app and dependencies
-  - **Test** - Runs pytest unit tests inside Docker container
-  - **Validate** - Builds production-ready runtime image
-- **Purpose**: Ensures code quality by automatically testing every change before integration
-- **Success**: Green status in Actions tab means all tests pass and code is deployment-ready
-
+  - **Test** - Runs pytest unit tests inside Docker container.
+  - **Build** - Creates Docker image with Flask app and dependencies.
+- **Purpose**: Ensures code quality by automatically testing every change before integration.
+- **Success**: Green status in Actions tab means all tests pass and code is deployment-ready.
+- Once the build is complete successfully we get the '**Artifact download URL:**' to download the Artifact. 
